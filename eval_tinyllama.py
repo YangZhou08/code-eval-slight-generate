@@ -7,11 +7,25 @@ from transformers import (
 from core import filter_code, run_eval, fix_indents
 import os
 import torch
+import argparse 
 
 # TODO: move to python-dotenv
 # add hugging face access token here
 TOKEN = ""
 
+parser = argparse.ArgumentParser() 
+parser.add_argument("--model_name", type=str, help="", required = True) 
+
+args = parser.parse_args() 
+
+potential_modelsnames = ["TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", "Cheng98/llama-160m"] 
+model_labels = ["tinyllama", "smalllama"] 
+labels = None 
+
+for idx, model_name in enumerate(potential_modelsnames): 
+    if args.model_name == model_name: 
+        labels = model_labels[idx] 
+print(model_name, labels) 
 
 @torch.inference_mode()
 def generate_batch_completion(
@@ -43,19 +57,25 @@ def generate_batch_completion(
 if __name__ == "__main__":
     # adjust for n = 10 etc
     num_samples_per_task = 10
-    out_path = "results/llama/eval.jsonl"
-    os.makedirs("results/llama", exist_ok=True)
+    if labels is not None: 
+        out_path = "results/{}/eval.jsonl".format(labels) 
+        os.makedirs("results/{}".format(labels), exist_ok = True) 
+    else: 
+        os.makedirs("results/llama", exist_ok=True)
+        out_path = "results/llama/eval.jsonl" 
 
     tokenizer = LlamaTokenizer.from_pretrained(
         # "huggyllama/llama-7b",
-        "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
+        # "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
+        args.model_name, 
     ) 
     
 
     model = torch.compile(
         LlamaForCausalLM.from_pretrained(
             # "huggyllama/llama-7b",
-            "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
+            # "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
+            args.model_name, 
             torch_dtype=torch.bfloat16,
         ) 
         .eval()
