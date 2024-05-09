@@ -27,10 +27,10 @@ potential_modelsnames = ["TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
 model_labels = ["tinyllama", "smalllama"] 
 labels = None 
 
-for idx, model_name in enumerate(potential_modelsnames): 
-    if args.model_name == model_name: 
-        labels = model_labels[idx] 
-print(model_name, labels) 
+# for idx, model_name in enumerate(potential_modelsnames): 
+#     if args.model_name == model_name: 
+#         labels = model_labels[idx] 
+# print(model_name, labels) 
 
 @torch.inference_mode()
 def generate_batch_completion(
