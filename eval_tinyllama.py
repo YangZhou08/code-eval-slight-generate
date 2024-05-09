@@ -17,6 +17,9 @@ TOKEN = ""
 
 parser = argparse.ArgumentParser() 
 parser.add_argument("--model_name", type=str, help="", required = True) 
+parser.add_argument("--loading_from_checkpoint", type = str, help = "", required = True) 
+parser.add_argument("--experiment_setting", type = str, help = "", required = True) 
+parser.add_argument("--kernelsize", type = int, help = "", required=True) 
 
 args = parser.parse_args() 
 
