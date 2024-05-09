@@ -3,11 +3,13 @@ from transformers import (
     LlamaForCausalLM,
     PreTrainedModel,
     PreTrainedTokenizer,
-)
+) 
 from core import filter_code, run_eval, fix_indents
 import os
 import torch
 import argparse 
+
+from transformers.models.llama.modeling_llama import LlamaWeirdLargeTest 
 
 # TODO: move to python-dotenv
 # add hugging face access token here
@@ -70,7 +72,7 @@ if __name__ == "__main__":
         args.model_name, 
     ) 
     
-
+    '''
     model = torch.compile(
         LlamaForCausalLM.from_pretrained(
             # "huggyllama/llama-7b",
@@ -82,7 +84,26 @@ if __name__ == "__main__":
         .to(torch.bfloat16) 
         .to("cuda")
     ) 
-
+    ''' 
+    large_model = LlamaWeirdLargeTest.from_pretrained(args.loading_from_checkpoint).to(torch.bfloat16) 
+    large_model.set_sliding_window_length(args.kernelsize) 
+    large_model.addonsmallmodel.set_criticalpath(hostname = "lovelace") 
+    large_model.set_msece_loss(use_mse_loss = False, ce_loss_only = True) 
+    large_model.to(torch.bfloat16) 
+    large_model.set_inference_setting(args.experiment_setting) 
+    large_model.set_walpha(0.5) 
+    large_model.set_slidingwindowlength(args.kernelsize) 
+    large_model.set_tokenizer_bos_id(bos_id = tokenizer.bos_token_id, pad_id = tokenizer.pad_token_id) 
+    large_model.set_cosinesimilarity(False) 
+    large_model.config.pad_token_id = tokenizer.pad_token_id 
+    large_model.addonsmallmodel.config.pad_token_id = tokenizer.pad_token_id 
+    # large_model.model.eval() 
+    # large_model.addonsmallmodel.eval() 
+    
+    model = torch.compile(
+        large_model.eval().to(torch.bfloat16).to("cuda") 
+    ) 
+    
     run_eval(
         model,
         tokenizer,
