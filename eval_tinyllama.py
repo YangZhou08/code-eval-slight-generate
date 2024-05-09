@@ -71,8 +71,8 @@ if __name__ == "__main__":
 
     tokenizer = LlamaTokenizer.from_pretrained(
         # "huggyllama/llama-7b",
-        # "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
-        args.model_name, 
+        "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
+        # args.model_name, 
     ) 
     
     '''
