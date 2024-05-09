@@ -8,6 +8,9 @@ from core import filter_code, run_eval, fix_indents
 import os
 import torch
 import argparse 
+import datetime 
+hash_of_time = str(datetime.datetime.now()).split('.')[-1] 
+print("the hash of time is {}".format(hash_of_time)) 
 
 from transformers.models.llama.modeling_llama import LlamaWeirdLargeTest 
 
@@ -20,12 +23,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--loading_from_checkpoint", type = str, help = "", required = True) 
 parser.add_argument("--experiment_setting", type = str, help = "", required = True) 
 parser.add_argument("--kernelsize", type = int, help = "", required=True) 
+parser.add_argument("--largefinetuned", type = str, default = "False") 
 
 args = parser.parse_args() 
 
 potential_modelsnames = ["TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", "Cheng98/llama-160m"] 
 model_labels = ["tinyllama", "smalllama"] 
 labels = None 
+labels = "kernelsize{}_experimentsetting{}_finetuned{}_{}".format(args.kernelsize, args.experiment_setting, args.largefinetuned, hash_of_time) 
 
 # for idx, model_name in enumerate(potential_modelsnames): 
 #     if args.model_name == model_name: 
