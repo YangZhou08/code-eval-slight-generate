@@ -14,8 +14,8 @@ print("the hash of time is {}".format(hash_of_time))
 
 from transformers.models.llama.modeling_llama import LlamaWeirdLargeTest 
 from transformers.models.llama.modeling_llama import LlamaForCausalLM2 
-from transformers.models.llama.modeling_llama import AutoModelForCausalLM 
-from transformers.models.llama.modeling_llama import AutoConfig 
+from transformers import AutoModelForCausalLM 
+from transformers import AutoConfig 
 from transformers.models.llama.modeling_llama import LlamaConfig 
 from griffin.llama import get_llama_griffin 
 from griffin.llama_chunk_redirecting import get_llama_griffintwo 
