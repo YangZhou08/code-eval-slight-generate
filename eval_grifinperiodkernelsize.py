@@ -17,6 +17,8 @@ from transformers.models.llama.modeling_llama import LlamaForCausalLM2
 from transformers.models.llama.modeling_llama import AutoModelForCausalLM 
 from transformers.models.llama.modeling_llama import AutoConfig 
 from transformers.models.llama.modeling_llama import LlamaConfig 
+from griffin.llama import get_llama_griffin 
+from griffin.llama_chunk_redirecting import get_llama_griffintwo 
 
 # TODO: move to python-dotenv
 # add hugging face access token here
@@ -60,29 +62,40 @@ def generate_batch_completion(
 if __name__ == "__main__":
     # adjust for n = 10 etc
     num_samples_per_task = 10
-    if args.experiment == "plain": 
-        out_path = "results/{}/eval.jsonl".format("Llama2_7B_{}".format(args.experiment)) 
-        os.makedirs("results/{}".format("Llama2_7B_{}".format(args.experiment), exist_ok = True)) 
-    else: 
-        os.makedirs("results/llama", exist_ok=True)
-        out_path = "results/llama/eval.jsonl" 
+    out_path = "results/{}/eval.jsonl".format("Llama2_7B_{}".format(args.experiment)) 
+    os.makedirs("results/{}".format("Llama2_7B_{}".format(args.experiment), exist_ok = True)) 
 
     tokenizer = LlamaTokenizer.from_pretrained(
-        "huggyllama/llama-7b",
-        # "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
+        # "huggyllama/llama-7b", 
+        "meta-llama/Llama-2-7b-hf", 
         # args.model_name, 
     ) 
     
-    model = torch.compile(
-        # LlamaForCausalLM.from_pretrained(
-        #     # "huggyllama/llama-7b",
-        #     # "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
-        #     args.model_name, 
-        #     torch_dtype=torch.bfloat16,
-        # ) 
-        .eval()
-        .to(torch.bfloat16) 
-        .to("cuda")
+    density = 0.5 
+    if args.experiment == "griffin_plain": 
+        config = AutoConfig.from_pretrained("meta-llama/Llama-2-7b-hf") 
+        model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-hf").to(torch.float16).to("cuda:0") 
+        schedule = [density for _ in range(config.num_hidden_layers)] 
+        model.config.mode = "gen" 
+        # large_model.config.chunksize = 8 
+        model.config.selection_method = "topk" 
+        model = get_llama_griffin(model, schedule) 
+    elif args.experiment == "griffin_period": 
+        config = LlamaConfig.from_pretrained("meta-llama/Llama-2-7b-hf") 
+        model = LlamaForCausalLM2.from_pretrained("meta-llama/Llama-2-7b-hf").to(torch.float16) 
+        schedule = [density for _ in range(config.num_hidden_layers)] 
+        model.config.chunksize = 8 
+        
+        model.config.mode = "gen" 
+        # large_model.config.chunksize = 8 
+        model.config.selection_method = "topk" 
+    
+        model = get_llama_griffintwo(model, schedule) 
+    else: 
+        raise NotImplementedError("Not implemented yet") 
+    
+    # self._model = get_llama_griffin(model, schedule) 
+    model.eval() 
     
     '''
     large_model = LlamaWeirdLargeTest.from_pretrained(args.loading_from_checkpoint).to(torch.bfloat16) 

@@ -92,7 +92,7 @@ if __name__ == "__main__":
     #     .to(torch.bfloat16) 
     #     .to("cuda")
     # ) 
-    model = LlamaForCausalLM.from_pretrained(args.model_name).to(torch.bfloat16).eval().to(torch.bfloat16).to("cuda") 
+    model = LlamaForCausalLM.from_pretrained(args.model_name).to(torch.bfloat16).eval().to("cuda") 
     '''
     large_model = LlamaWeirdLargeTest.from_pretrained(args.loading_from_checkpoint).to(torch.bfloat16) 
     large_model.set_sliding_window_length(args.kernelsize) 
