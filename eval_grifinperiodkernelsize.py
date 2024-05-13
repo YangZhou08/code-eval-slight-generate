@@ -13,6 +13,10 @@ hash_of_time = str(datetime.datetime.now()).split('.')[-1]
 print("the hash of time is {}".format(hash_of_time)) 
 
 from transformers.models.llama.modeling_llama import LlamaWeirdLargeTest 
+from transformers.models.llama.modeling_llama import LlamaForCausalLM2 
+from transformers.models.llama.modeling_llama import AutoModelForCausalLM 
+from transformers.models.llama.modeling_llama import AutoConfig 
+from transformers.models.llama.modeling_llama import LlamaConfig 
 
 # TODO: move to python-dotenv
 # add hugging face access token here
@@ -20,22 +24,11 @@ TOKEN = ""
 
 parser = argparse.ArgumentParser() 
 parser.add_argument("--model_name", type=str, help="", required = True) 
-# parser.add_argument("--loading_from_checkpoint", type = str, help = "", required = True) 
-# parser.add_argument("--experiment_setting", type = str, help = "", required = True) 
-# parser.add_argument("--kernelsize", type = int, help = "", required=True) 
-# parser.add_argument("--largefinetuned", type = str, default = "False") 
+parser.add_argument("--experiment", type = str, choices = ["plain", "griffin_plain", "griffin_period"], required = True) 
 
 args = parser.parse_args() 
 
-potential_modelsnames = ["TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", "Cheng98/llama-160m"] 
-model_labels = ["tinyllama", "smalllama"] 
-labels = None 
 # labels = "kernelsize{}_experimentsetting{}_finetuned{}_{}".format(args.kernelsize, args.experiment_setting, args.largefinetuned, hash_of_time) 
-
-for idx, model_name in enumerate(potential_modelsnames): 
-    if args.model_name == model_name: 
-        labels = model_labels[idx] 
-print(model_name, labels) 
 
 @torch.inference_mode()
 def generate_batch_completion(
@@ -67,32 +60,30 @@ def generate_batch_completion(
 if __name__ == "__main__":
     # adjust for n = 10 etc
     num_samples_per_task = 10
-    if labels is not None: 
-        out_path = "results/{}/eval.jsonl".format(labels) 
-        os.makedirs("results/{}".format(labels), exist_ok = True) 
+    if args.experiment == "plain": 
+        out_path = "results/{}/eval.jsonl".format("Llama2_7B_{}".format(args.experiment)) 
+        os.makedirs("results/{}".format("Llama2_7B_{}".format(args.experiment), exist_ok = True)) 
     else: 
         os.makedirs("results/llama", exist_ok=True)
         out_path = "results/llama/eval.jsonl" 
 
     tokenizer = LlamaTokenizer.from_pretrained(
-        # "huggyllama/llama-7b",
-        "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
+        "huggyllama/llama-7b",
+        # "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
         # args.model_name, 
     ) 
     
+    model = torch.compile(
+        # LlamaForCausalLM.from_pretrained(
+        #     # "huggyllama/llama-7b",
+        #     # "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
+        #     args.model_name, 
+        #     torch_dtype=torch.bfloat16,
+        # ) 
+        .eval()
+        .to(torch.bfloat16) 
+        .to("cuda")
     
-    # model = torch.compile(
-    #     LlamaForCausalLM.from_pretrained(
-    #         # "huggyllama/llama-7b",
-    #         # "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
-    #         args.model_name, 
-    #         torch_dtype=torch.bfloat16,
-    #     ) 
-    #     .eval()
-    #     .to(torch.bfloat16) 
-    #     .to("cuda")
-    # ) 
-    model = LlamaForCausalLM.from_pretrained(args.model_name).to(torch.bfloat16).eval().to(torch.bfloat16).to("cuda") 
     '''
     large_model = LlamaWeirdLargeTest.from_pretrained(args.loading_from_checkpoint).to(torch.bfloat16) 
     large_model.set_sliding_window_length(args.kernelsize) 
