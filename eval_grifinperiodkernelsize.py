@@ -73,13 +73,17 @@ if __name__ == "__main__":
     
     density = 0.5 
     if args.experiment == "griffin_plain": 
-        config = AutoConfig.from_pretrained(args.model_name) 
-        model = AutoModelForCausalLM.from_pretrained(args.model_name).to(torch.float16).to("cuda:0") 
+        # config = AutoConfig.from_pretrained(args.model_name) 
+        # model = AutoModelForCausalLM.from_pretrained(args.model_name).to(torch.float16).to("cuda:0") 
+        config = LlamaConfig.from_pretrained("meta-llama/Llama-2-7b-hf") 
+        model = LlamaForCausalLM2.from_pretrained("meta-llama/Llama-2-7b-hf") 
         schedule = [density for _ in range(config.num_hidden_layers)] 
         model.config.mode = "gen" 
         # large_model.config.chunksize = 8 
+        model.config.chunksize = 8 
         model.config.selection_method = "topk" 
-        model = get_llama_griffin(model, schedule) 
+        # model = get_llama_griffin(model, schedule) 
+        model = get_llama_griffintwo(model, schedule) 
     elif args.experiment == "griffin_period": 
         config = LlamaConfig.from_pretrained(args.model_name) 
         model = LlamaForCausalLM2.from_pretrained(args.model_name).to(torch.float16) 
