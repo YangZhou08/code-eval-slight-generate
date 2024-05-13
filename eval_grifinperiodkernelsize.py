@@ -34,7 +34,7 @@ args = parser.parse_args()
 
 @torch.inference_mode()
 def generate_batch_completion(
-    model: PreTrainedModel, tokenizer: PreTrainedTokenizer, prompt, batch_size
+    model: PreTrainedModel, tokenizer: PreTrainedTokenizer, prompt, batch_size = 1
 ) -> list[str]:
     input_batch = [prompt for _ in range(batch_size)]
     inputs = tokenizer(input_batch, return_tensors="pt").to(model.device)
