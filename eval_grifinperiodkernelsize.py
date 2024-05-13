@@ -85,7 +85,7 @@ if __name__ == "__main__":
         # model = get_llama_griffintwo(model, schedule) 
     elif args.experiment == "griffin_period": 
         config = LlamaConfig.from_pretrained(args.model_name) 
-        model = LlamaForCausalLM2.from_pretrained(args.model_name).to(torch.float16) 
+        model = LlamaForCausalLM2.from_pretrained(args.model_name).to(torch.float16).to("cuda:0") 
         schedule = [density for _ in range(config.num_hidden_layers)] 
         model.config.chunksize = 8 
         
