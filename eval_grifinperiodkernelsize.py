@@ -17,8 +17,8 @@ from transformers.models.llama.modeling_llama import LlamaForCausalLM2
 from transformers import AutoModelForCausalLM 
 from transformers import AutoConfig 
 from transformers.models.llama.modeling_llama import LlamaConfig 
-from griffin.llama import get_llama_griffin 
-from griffin.llama_chunk_redirecting import get_llama_griffintwo 
+from transformers.griffin.llama import get_llama_griffin 
+from transformers.griffin.llama_chunk_redirecting import get_llama_griffintwo 
 
 # TODO: move to python-dotenv
 # add hugging face access token here
