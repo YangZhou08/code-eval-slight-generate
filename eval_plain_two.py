@@ -4,8 +4,6 @@ from transformers import (
     PreTrainedModel,
     PreTrainedTokenizer,
 ) 
-from transformers import AutoTokenizer 
-from transformers import AutoModelForCausalLM 
 from core import filter_code, run_eval, fix_indents
 import os
 import torch
@@ -13,6 +11,8 @@ import argparse
 import datetime 
 hash_of_time = str(datetime.datetime.now()).split('.')[-1] 
 print("the hash of time is {}".format(hash_of_time)) 
+
+from transformers.models.llama.modeling_llama import LlamaWeirdLargeTest 
 
 # TODO: move to python-dotenv
 # add hugging face access token here
@@ -22,6 +22,17 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model_name", type=str, help="", required = True) 
 
 args = parser.parse_args() 
+
+potential_modelsnames = ["TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", "Cheng98/llama-160m"] 
+model_labels = ["tinyllama", "smalllama"] 
+labels = None 
+
+for idx, model_name in enumerate(potential_modelsnames): 
+    if args.model_name == model_name: 
+        labels = model_labels[idx] 
+print(model_name, labels) 
+if labels is None: 
+    labels = "Unknown" 
 
 @torch.inference_mode()
 def generate_batch_completion(
@@ -52,15 +63,29 @@ def generate_batch_completion(
 
 if __name__ == "__main__":
     # adjust for n = 10 etc
-    # num_samples_per_task = 10
-    num_samples_per_task = 1 
-    out_path = "results/{}/eval.jsonl".format("{}_time{}".format(args.model_name, hash_of_time)) 
-    os.makedirs("results/{}".format("{}_time{}".format(args.model_name, hash_of_time)), exist_ok = True) 
+    num_samples_per_task = 10
+    if labels is not None: 
+        out_path = "results/{}/eval.jsonl".format(labels) 
+        os.makedirs("results/{}".format(labels), exist_ok = True) 
+    else: 
+        os.makedirs("results/llama", exist_ok=True)
+        out_path = "results/llama/eval.jsonl" 
 
-    # tokenizer = LlamaTokenizer.from_pretrained(args.model_name) 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name) 
+    tokenizer = LlamaTokenizer.from_pretrained(args.model_name) 
     
-    model = AutoTokenizer.from_pretrained(args.model_name).to(torch.float16).eval().to("cuda") 
+    
+    # model = torch.compile(
+    #     LlamaForCausalLM.from_pretrained(
+    #         # "huggyllama/llama-7b",
+    #         # "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T", 
+    #         args.model_name, 
+    #         torch_dtype=torch.bfloat16,
+    #     ) 
+    #     .eval()
+    #     .to(torch.bfloat16) 
+    #     .to("cuda")
+    # ) 
+    model = LlamaForCausalLM.from_pretrained(args.model_name).to(torch.bfloat16).eval().to("cuda") 
     
     run_eval(
         model,
@@ -69,7 +94,4 @@ if __name__ == "__main__":
         out_path,
         generate_batch_completion,
         True,
-    ) 
-    
-    print(args) 
-    os.system("evaluate_functional_correctness {}".format(out_path)) 
+    )
