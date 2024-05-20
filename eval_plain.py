@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # tokenizer = LlamaTokenizer.from_pretrained(args.model_name) 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name) 
     
-    model = AutoTokenizer.from_pretrained(args.model_name).to(torch.float16).eval().to("cuda") 
+    model = AutoModelForCausalLM.from_pretrained(args.model_name).to(torch.float16).eval().to("cuda") 
     
     run_eval(
         model,
